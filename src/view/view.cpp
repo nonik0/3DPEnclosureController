@@ -25,17 +25,23 @@ struct AppOptionRenderProps_t
     const char* tag;
     const std::uint16_t* icon;
 };
-constexpr int _app_render_props_list_size = 8;
+constexpr int _app_render_props_list_size = 6;
 constexpr AppOptionRenderProps_t _app_render_props_list[] = {
-    {0xB8DBD9, 0x385B59, "DISPLAY TEST", image_data_icon_display},
-    {0x87C38F, 0x07430F, "BRIGHTNESS", image_data_icon_brightness},
-    {0xC9C9EE, 0x49496E, "RTC TIME", image_data_icon_rtc},
-    {0xF6A4A4, 0x762424, "WIFI SCAN", image_data_icon_wifi},
-    {0x6AB8A0, 0x163820, "ENCODER TEST", image_data_icon_encoder},
-    // {0xC2C1A5, 0x424125, "MENU DEMO", image_data_icon_menu},
+    // {0xB8DBD9, 0x385B59, "DISPLAY TEST", image_data_icon_display},
+    // {0x87C38F, 0x07430F, "BRIGHTNESS", image_data_icon_brightness},
+    // {0xC9C9EE, 0x49496E, "RTC TIME", image_data_icon_rtc},
+    // {0xF6A4A4, 0x762424, "WIFI SCAN", image_data_icon_wifi},
+    // {0x6AB8A0, 0x163820, "ENCODER TEST", image_data_icon_encoder},
+    // // {0xC2C1A5, 0x424125, "MENU DEMO", image_data_icon_menu},
+    // {0xF5C396, 0x754316, "ARKANOID", image_data_icon_game},
+    // {0xC6D5EF, 0x46556F, "SLEEP&WAKEUP", image_data_icon_sleep},
+    // //{0xCEDBB8, 0x4E5B38, "POWER OFF", image_data_icon_poweroff},
     {0xF5C396, 0x754316, "ARKANOID", image_data_icon_game},
-    {0xC6D5EF, 0x46556F, "SLEEP&WAKEUP", image_data_icon_sleep},
-    {0xCEDBB8, 0x4E5B38, "POWER OFF", image_data_icon_poweroff},
+    {0xB8DBD9, 0x385B59, "CURRENT PRINT", image_data_icon_display},
+    {0xF5C396, 0x754316, "EXTRUDER TEMP", image_data_icon_game},
+    {0xF5C396, 0x754316, "BED TEMP", image_data_icon_game},
+    {0x87C38F, 0x07430F, "LED BRIGHTNESS", image_data_icon_brightness},
+    {0x87C38F, 0x07430F, "LED PATTERN", image_data_icon_brightness},
 };
 
 static Transition2D* _batv_panel_transition = nullptr;
@@ -114,14 +120,15 @@ class LauncherMenu : public SmoothOptions
     void onRender() override
     {
         // Clear
-        _ft->_canvas->fillScreen(TFT_WHITE);
+        _ft->_canvas->fillScreen(TFT_BLACK);
 
         // Render batv panel
-        _ft->_canvas->pushImage(
-            _batv_panel_transition->getValue().x, _batv_panel_transition->getValue().y, 83, 54, image_data_bat_panel);
+        //_ft->_canvas->pushImage(
+        //    _batv_panel_transition->getValue().x, _batv_panel_transition->getValue().y, 83, 54, image_data_bat_panel);
         _ft->_canvas->setTextDatum(top_left);
         _ft->_canvas->setTextColor(0x7F5845);
         _ft->_canvas->setFont(&fonts::efontCN_16);
+        _ft->_canvas->setTextColor(TFT_SILVER);
         _ft->_canvas->drawString("Bat:", _batv_panel_transition->getValue().x + 6, _batv_panel_transition->getValue().y + 13);
         _ft->_canvas->setFont(&fonts::efontCN_24);
         _ft->_canvas->drawString(_batv, _batv_panel_transition->getValue().x + 4, _batv_panel_transition->getValue().y + 29);
@@ -209,24 +216,36 @@ class LauncherMenu : public SmoothOptions
     void _open_app()
     {
         int matching_index = getSelectedOptionIndex();
-        if (matching_index == 0)
-            _ft->_disp_test();
-        else if (matching_index == 1)
-            _ft->_disp_set_brightness();
-        else if (matching_index == 2)
-            _ft->_rtc_test();
-        else if (matching_index == 3)
-            _ft->_wifi_test();
-        else if (matching_index == 4)
-            _ft->_encoder_test_user();
+        // if (matching_index == 0)
+        //     _ft->_disp_test();
+        // else if (matching_index == 1)
+        //     _ft->_disp_set_brightness();
+        // else if (matching_index == 2)
+        //     _ft->_rtc_test();
+        // else if (matching_index == 3)
+        //     _ft->_wifi_test();
+        // else if (matching_index == 4)
+        //     _ft->_encoder_test_user();
+        // // else if (matching_index == 5)
+        // //     printf("todo\n");
         // else if (matching_index == 5)
-        //     printf("todo\n");
+        //     _ft->_arkanoid_start();
+        // else if (matching_index == 6)
+        //     _ft->_rtc_wakeup_test_user();
+        // //else if (matching_index == 7)
+        // //    _ft->_power_off();
+        if (matching_index == 0)
+             _ft->_arkanoid_start();
+        else if (matching_index == 1)
+             _ft->_arkanoid_start(); // current print
+        else if (matching_index == 2)
+            _ft->_printer_set_extruder_temp();
+        else if (matching_index == 3)
+            _ft->_printer_set_bed_temp();
+        else if (matching_index == 4)
+             _ft->_disp_set_brightness(); // led brightness
         else if (matching_index == 5)
-            _ft->_arkanoid_start();
-        else if (matching_index == 6)
-            _ft->_rtc_wakeup_test_user();
-        else if (matching_index == 7)
-            _ft->_power_off();
+             _ft->_disp_set_brightness(); // led pattern
     }
 };
 

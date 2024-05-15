@@ -112,6 +112,10 @@ public:
     void _UnloadGame(void);      // Unload game
     void _UpdateDrawFrame(void); // Update and Draw (one frame)
 
+    /* 3D Printer */
+    void _printer_set_extruder_temp();
+    void _printer_set_bed_temp();
+
 public:
     FactoryTest()
         : _is_test_mode(false), _disp(nullptr), _canvas(nullptr), _enc_pos(0), _wifi_tested(false), _is_ble_inited(false)
