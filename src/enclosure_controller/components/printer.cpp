@@ -1,12 +1,15 @@
-#include "../factory_test.h"
+#include "../enclosure_controller.h"
 #include "ft_disp_lgfx_cfg.hpp"
 
 // arkanoid orange: 0xF5C396
 // arakanoid dark orange: 0x754316
 
-void FactoryTest::_printer_set_extruder_temp()
+void EnclosureController::_printer_set_extruder_temp()
 {
     printf("set extruder temp\n");
+
+    log_i("ssh init");
+    _ssh_init();
 
     _canvas->setFont(&fonts::Font0);
 
@@ -62,7 +65,7 @@ void FactoryTest::_printer_set_extruder_temp()
             // send temperature to printer
         }
 
-        if (_check_next())
+        if (_check_btn())
         {
             break;
         }
@@ -70,9 +73,8 @@ void FactoryTest::_printer_set_extruder_temp()
 
     printf("quit set extruder tenmp\n");
 }
-
   
-void FactoryTest::_printer_set_bed_temp()
+void EnclosureController::_printer_set_bed_temp()
 {
     printf("set bed temp\n");
 
@@ -130,7 +132,7 @@ void FactoryTest::_printer_set_bed_temp()
             // send temperature to printer
         }
 
-        if (_check_next())
+        if (_check_btn())
         {
             break;
         }

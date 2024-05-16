@@ -1,24 +1,14 @@
-/**
- * @file main.cpp
- * @author Forairaaaaa
- * @brief
- * @version 0.1
- * @date 2023-06-06
- *
- * @copyright Copyright (c) 2023
- *
- */
-#include "factory_test/factory_test.h"
+#include "enclosure_controller/enclosure_controller.h"
 
-static FactoryTest ft;
+static EnclosureController encCtl;
 
-void view_create(FactoryTest* ft);
+void view_create(EnclosureController* encCtl);
 void view_update();
 
 void setup()
 {
-    ft.init();
-    view_create(&ft);
+    encCtl.init();
+    view_create(&encCtl);
 }
 
 void loop() { view_update(); }

@@ -8,12 +8,12 @@
  * @copyright Copyright (c) 2024
  *
  */
-#include "../factory_test/factory_test.h"
+#include "../enclosure_controller/enclosure_controller.h"
 #include "assets/assets.h"
 #include <Arduino.h>
 #include <smooth_ui_toolkit.h>
 
-static FactoryTest* _ft = nullptr;
+static EnclosureController* _encCtl = nullptr;
 
 using namespace SmoothUIToolKit;
 using namespace SmoothUIToolKit::SelectMenu;
@@ -62,19 +62,19 @@ class LauncherMenu : public SmoothOptions
             return;
 
         // Update navigation
-        _ft->_check_encoder(true);
-        if (_ft->_enc.getPosition() != _last_enc_postion)
+        _encCtl->_check_encoder(true);
+        if (_encCtl->_enc.getPosition() != _last_enc_postion)
         {
-            if (_ft->_enc.getPosition() < _last_enc_postion)
+            if (_encCtl->_enc.getPosition() < _last_enc_postion)
             {
                 goLast();
             }
-            else if (_ft->_enc.getPosition() > _last_enc_postion)
+            else if (_encCtl->_enc.getPosition() > _last_enc_postion)
             {
                 goNext();
             }
 
-            _last_enc_postion = _ft->_enc.getPosition();
+            _last_enc_postion = _encCtl->_enc.getPosition();
             // printf("%d\n", _last_enc_postion);
             // printf("%d\n", (int)_ft->_enc.getPosition());
             // printf("%d\n", _ft->_enc.getCount());
@@ -84,18 +84,18 @@ class LauncherMenu : public SmoothOptions
         if (_is_just_boot_in)
         {
             // If not pressing
-            if (_ft->_btn_pwr.read())
+            if (_encCtl->_enc_btn.read())
             {
                 _is_just_boot_in = false;
             }
         }
 
         // If select
-        else if (!_ft->_btn_pwr.read())
+        else if (!_encCtl->_enc_btn.read())
         {
             if (!_wait_button_released)
             {
-                _ft->_tone(2500, 50);
+                _encCtl->_tone(2500, 50);
 
                 _wait_button_released = true;
                 _is_pressing = true;
@@ -120,28 +120,28 @@ class LauncherMenu : public SmoothOptions
     void onRender() override
     {
         // Clear
-        _ft->_canvas->fillScreen(TFT_BLACK);
+        _encCtl->_canvas->fillScreen(TFT_BLACK);
 
         // Render batv panel
         //_ft->_canvas->pushImage(
         //    _batv_panel_transition->getValue().x, _batv_panel_transition->getValue().y, 83, 54, image_data_bat_panel);
-        _ft->_canvas->setTextDatum(top_left);
-        _ft->_canvas->setTextColor(0x7F5845);
-        _ft->_canvas->setFont(&fonts::efontCN_16);
-        _ft->_canvas->setTextColor(TFT_SILVER);
-        _ft->_canvas->drawString("Bat:", _batv_panel_transition->getValue().x + 6, _batv_panel_transition->getValue().y + 13);
-        _ft->_canvas->setFont(&fonts::efontCN_24);
-        _ft->_canvas->drawString(_batv, _batv_panel_transition->getValue().x + 4, _batv_panel_transition->getValue().y + 29);
+        _encCtl->_canvas->setTextDatum(top_left);
+        _encCtl->_canvas->setTextColor(0x7F5845);
+        _encCtl->_canvas->setFont(&fonts::efontCN_16);
+        _encCtl->_canvas->setTextColor(TFT_SILVER);
+        _encCtl->_canvas->drawString("Bat:", _batv_panel_transition->getValue().x + 6, _batv_panel_transition->getValue().y + 13);
+        _encCtl->_canvas->setFont(&fonts::efontCN_24);
+        _encCtl->_canvas->drawString(_batv, _batv_panel_transition->getValue().x + 4, _batv_panel_transition->getValue().y + 29);
 
         // Render options
         int y_offset = 6;
-        _ft->_canvas->setTextDatum(top_right);
+        _encCtl->_canvas->setTextDatum(top_right);
         for (int i = getKeyframeList().size() - 1; i >= 0; i--)
         {
             getMatchingOptionIndex(i, _matching_index);
 
             // Render cards
-            _ft->_canvas->fillSmoothRoundRect(getOptionCurrentFrame(_matching_index).x,
+            _encCtl->_canvas->fillSmoothRoundRect(getOptionCurrentFrame(_matching_index).x,
                                               getOptionCurrentFrame(_matching_index).y,
                                               getOptionCurrentFrame(_matching_index).w,
                                               getOptionCurrentFrame(_matching_index).h,
@@ -161,7 +161,7 @@ class LauncherMenu : public SmoothOptions
                 else
                     y_offset = getOptionCurrentFrame(_matching_index).y + 6;
 
-                _ft->_canvas->pushImage(getOptionCurrentFrame(_matching_index).x + 13,
+                _encCtl->_canvas->pushImage(getOptionCurrentFrame(_matching_index).x + 13,
                                         y_offset,
                                         32,
                                         32,
@@ -172,13 +172,13 @@ class LauncherMenu : public SmoothOptions
             // Render tags
             if (i == 0 && !isOpening())
             {
-                _ft->_canvas->setTextColor(_app_render_props_list[_matching_index].tag_color);
-                _ft->_canvas->drawString(_app_render_props_list[_matching_index].tag, 218, 26);
+                _encCtl->_canvas->setTextColor(_app_render_props_list[_matching_index].tag_color);
+                _encCtl->_canvas->drawString(_app_render_props_list[_matching_index].tag, 218, 26);
             }
         }
 
         // Push
-        _ft->_canvas_update();
+        _encCtl->_canvas_update();
     }
 
     void onPress() override
@@ -208,9 +208,9 @@ class LauncherMenu : public SmoothOptions
 
         // Close option
         close();
-        _ft->_enc.setPosition(_last_enc_postion);
-        _ft->_canvas->setFont(&fonts::efontCN_24);
-        _ft->_canvas->setTextSize(1);
+        _encCtl->_enc.setPosition(_last_enc_postion);
+        _encCtl->_canvas->setFont(&fonts::efontCN_24);
+        _encCtl->_canvas->setTextSize(1);
     }
 
     void _open_app()
@@ -235,28 +235,28 @@ class LauncherMenu : public SmoothOptions
         // //else if (matching_index == 7)
         // //    _ft->_power_off();
         if (matching_index == 0)
-             _ft->_arkanoid_start();
+             _encCtl->_arkanoid_start();
         else if (matching_index == 1)
-             _ft->_arkanoid_start(); // current print
+             _encCtl->_arkanoid_start(); // current print
         else if (matching_index == 2)
-            _ft->_printer_set_extruder_temp();
+            _encCtl->_printer_set_extruder_temp();
         else if (matching_index == 3)
-            _ft->_printer_set_bed_temp();
+            _encCtl->_printer_set_bed_temp();
         else if (matching_index == 4)
-             _ft->_disp_set_brightness(); // led brightness
+             _encCtl->_disp_set_brightness(); // led brightness
         else if (matching_index == 5)
-             _ft->_disp_set_brightness(); // led pattern
+             _encCtl->_disp_set_brightness(); // led pattern
     }
 };
 
 static LauncherMenu* _launcher_menu = nullptr;
 
-void view_create(FactoryTest* ft)
+void view_create(EnclosureController* encCtl)
 {
-    _ft = ft;
-    _ft->_enc.setPosition(_last_enc_postion);
-    _ft->_canvas->setFont(&fonts::efontCN_24);
-    _ft->_canvas->setTextSize(1);
+    _encCtl = encCtl;
+    _encCtl->_enc.setPosition(_last_enc_postion);
+    _encCtl->_canvas->setFont(&fonts::efontCN_24);
+    _encCtl->_canvas->setTextSize(1);
 
     // Create menu
     _launcher_menu = new LauncherMenu;
