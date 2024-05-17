@@ -1,13 +1,3 @@
-/**
- * @file key_test.cpp
- * @author Forairaaaaa
- * @brief
- * @version 0.1
- * @date 2023-06-06
- *
- * @copyright Copyright (c) 2023
- *
- */
 #include "../enclosure_controller.h"
 
 void EnclosureController::_power_on()
@@ -57,7 +47,7 @@ EnclosureController::PressType EnclosureController::_check_btn()
         while (!_enc_btn.read())
         {
             time_count++;
-            if (time_count > 100)
+            if (time_count > 50)
             {
                 return PressType::LONG_PRESS;
             }

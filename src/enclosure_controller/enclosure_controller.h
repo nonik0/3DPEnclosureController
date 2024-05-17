@@ -1,13 +1,3 @@
-/**
- * @file factory_test.h
- * @author Forairaaaaa
- * @brief
- * @version 0.1
- * @date 2023-06-06
- *
- * @copyright Copyright (c) 2023
- *
- */
 #pragma once
 #include <Arduino.h>
 #include <Button.h>
@@ -64,7 +54,6 @@ public:
     void _wait_next();
 
     /* Encoder */
-    // RotaryEncoder _enc = RotaryEncoder(40, 41, RotaryEncoder::LatchMode::TWO03);
     ESP32Encoder _enc;
     int _enc_pos = 0;
     void _enc_init();
@@ -89,6 +78,7 @@ public:
     ssh_session _ssh_session;
     bool _ssh_inited;
     void _ssh_init();
+    void _ssh_deinit();
     void _ssh_cmd(const char* cmd);
 
     /* Arkanoid */
@@ -104,6 +94,7 @@ public:
     /* 3D Printer */
     void _printer_set_extruder_temp();
     void _printer_set_bed_temp();
+    void _printer_set_temperature(int minTemp, int maxTemp, int defaultTemp, const char* name, const char* gcode);
 
 public:
     EnclosureController() {}

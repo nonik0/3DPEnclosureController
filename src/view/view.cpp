@@ -222,6 +222,11 @@ class LauncherMenu : public SmoothOptions
             _encCtl->_disp_set_brightness(); // led brightness
         else if (matching_index == 5)
             _encCtl->_disp_set_brightness(); // led pattern
+
+        // wait to release button to prevent double click
+        while(!_encCtl->_enc_btn.read()) {
+            delay(50);
+        }
     }
 };
 
