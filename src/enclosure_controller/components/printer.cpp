@@ -1,5 +1,5 @@
+#include "LGFX_DinMeter.hpp"
 #include "../enclosure_controller.h"
-#include "ft_disp_lgfx_cfg.hpp"
 
 // arkanoid orange: 0xF5C396
 // arakanoid dark orange: 0x754316

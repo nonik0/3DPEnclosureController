@@ -18,12 +18,11 @@ void EnclosureController::init()
 
     _btn_init();
 
+    _enc_init();
+
     _disp_init();
 
-    // Encoder init
-    _enc.attachHalfQuad(40, 41);
-
-    _enc.setCount(0);
-
     _wifi_init();
+
+    _rtc_ntp_sync();
 }

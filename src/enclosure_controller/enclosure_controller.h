@@ -33,8 +33,6 @@
 class EnclosureController
 {
 public:
-    bool _is_test_mode;
-
     /* System */
     inline void _stuck_forever()
     {
@@ -45,15 +43,12 @@ public:
     }
     void _power_on();
     void _power_off();
-    void _get_test_mode();
-    bool _check_test_mode();
 
     /* Display */
-    LGFX_Device* _disp;
-    LGFX_Sprite* _canvas;
+    LGFX_Device* _disp = nullptr;
+    LGFX_Sprite* _canvas = nullptr;
     inline void _canvas_update() { _canvas->pushSprite(0, 0); }
     void _disp_init();
-    void _disp_test();
     void _disp_set_brightness();
 
     /* Button */
@@ -71,11 +66,9 @@ public:
     /* Encoder */
     // RotaryEncoder _enc = RotaryEncoder(40, 41, RotaryEncoder::LatchMode::TWO03);
     ESP32Encoder _enc;
-    int _enc_pos;
+    int _enc_pos = 0;
+    void _enc_init();
     bool _check_encoder(bool playBuzz = true);
-    void _encoder_test();
-    void _encoder_test_new();
-    void _encoder_test_user();
 
     /* Buzzer */
     inline void _tone(unsigned int frequency, unsigned long duration = 0UL) { tone(BUZZ_PIN, frequency, duration); }
@@ -84,28 +77,19 @@ public:
     /* RTC */
     I2C_BM8563 _rtc;
     void _rtc_init();
-    void _rtc_test();
-    void _rtc_wakeup_test();
-    void _rtc_wakeup_test_user();
+    void _rtc_ntp_sync();
+    void _rtc_check();
 
     /* Wifi */
     bool _wifi_inited;
     void _wifi_init();
-    void _wifi_check();
+    bool _wifi_check();
 
     /* SSH */
     ssh_session _ssh_session;
     bool _ssh_inited;
     void _ssh_init();
     void _ssh_cmd(const char* cmd);
-
-    /* BLE */
-    bool _is_ble_inited;
-    void _ble_test();
-
-    /* IO */
-    void _io_test();
-    void _io_test_user();
 
     /* Arkanoid */
     void _arkanoid_start();
@@ -122,7 +106,7 @@ public:
     void _printer_set_bed_temp();
 
 public:
-    EnclosureController() : _is_test_mode(false), _disp(nullptr), _canvas(nullptr), _enc_pos(0), _is_ble_inited(false) {}
+    EnclosureController() {}
     ~EnclosureController() = default;
 
     void init();

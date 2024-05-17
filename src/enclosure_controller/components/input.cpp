@@ -81,6 +81,14 @@ void EnclosureController::_wait_next()
     printf("go next\n");
 }
 
+void EnclosureController::_enc_init()
+{
+    // Encoder init
+    _enc.attachHalfQuad(40, 41);
+
+    _enc.setCount(0);
+}
+
 bool EnclosureController::_check_encoder(bool playBuzz)
 {
     if (_enc_pos != _enc.getPosition())

@@ -57,7 +57,7 @@ public:
 
             _panel_instance.config(cfg);
         }
-        { // バックライト制御の設定を行います。（必要なければ削除）
+        {                                        // バックライト制御の設定を行います。（必要なければ削除）
             auto cfg = _light_instance.config(); // バックライト設定用の構造体を取得します。
 
             cfg.pin_bl = LCD_BL_PIN; // バックライトが接続されているピン番号
