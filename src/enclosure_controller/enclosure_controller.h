@@ -16,7 +16,6 @@
 #include <libssh/libssh.h>
 #include <libssh_esp32.h>
 
-#define FW_VERISON "v0.1"
 #define BUZZ_PIN 3
 #define POWER_HOLD_PIN 46
 

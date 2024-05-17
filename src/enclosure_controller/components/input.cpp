@@ -47,7 +47,7 @@ EnclosureController::PressType EnclosureController::_check_btn()
         while (!_enc_btn.read())
         {
             time_count++;
-            if (time_count > 50)
+            if (time_count > 20)
             {
                 return PressType::LONG_PRESS;
             }
