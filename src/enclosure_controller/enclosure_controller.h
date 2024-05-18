@@ -91,6 +91,9 @@ public:
     void _UpdateDrawFrame(void); // Update and Draw (one frame)
 
     /* 3D Printer */
+    int _extruder_temp = 0;
+    int _bed_temp = 0;
+    void _printer_get_status();
     void _printer_set_extruder_temp();
     void _printer_set_bed_temp();
     void _printer_set_temperature(int minTemp, int maxTemp, int defaultTemp, const char* name, const char* gcode);
