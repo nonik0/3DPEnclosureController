@@ -195,6 +195,7 @@ class LauncherMenu : public SmoothOptions
     void onOpenEnd() override
     {
         _open_app();
+        _wait_button_released = true;
 
         // Reset anim
         setPositionDuration(600);

@@ -1,3 +1,4 @@
+#include <ArduinoJson.h>
 #include <MD5Builder.h>
 #include "LGFX_DinMeter.hpp"
 #include "../enclosure_controller.h"
@@ -14,11 +15,9 @@
 String exractParam(String &authReq, const String &param, const char delimit)
 {
     int _begin = authReq.indexOf(param);
-    if (_begin == -1)
-    {
-        return "";
-    }
-    return authReq.substring(_begin + param.length(), authReq.indexOf(delimit, _begin + param.length()));
+    return (_begin == -1)
+               ? ""
+               : authReq.substring(_begin + param.length(), authReq.indexOf(delimit, _begin + param.length()));
 }
 
 String getCNonce(const int len)
@@ -26,9 +25,7 @@ String getCNonce(const int len)
     static const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     String s = "";
     for (int i = 0; i < len; ++i)
-    {
         s += alphanum[rand() % (sizeof(alphanum) - 1)];
-    }
     return s;
 }
 
@@ -43,66 +40,65 @@ String generateMD5(String input)
 
 String getDigestAuth(String &authReq, const String &username, const String &password, const String &method, const String &uri, unsigned int counter)
 {
-    // extracting required parameters for RFC 2069 simpler Digest
     String realm = exractParam(authReq, "realm=\"", '"');
     String nonce = exractParam(authReq, "nonce=\"", '"');
-    String opaque  = exractParam(authReq, "opaque=\"", '"');
+    String opaque = exractParam(authReq, "opaque=\"", '"');
     String cNonce = getCNonce(8);
 
     char nc[9];
     snprintf(nc, sizeof(nc), "%08x", counter);
 
-    // parameters for the RFC 2617 newer Digest
     String h1 = generateMD5(username + ":" + realm + ":" + password);
+    h1 = generateMD5(h1 + ":" + nonce + ":" + cNonce); // MD5-sess support
     String h2 = generateMD5(method + ":" + uri);
-    String response = generateMD5(h1 + ":" + nonce + ":" + String(nc) + ":" + cNonce + ":" + "auth" + ":" + h2);
-    //String response = generateMD5(ha1 + ":" + nonce + ":" + "00000001:xyz:auth:" + ha2);
-
+    String response = generateMD5(h1 + ":" + nonce + ":" + String(nc) + ":" + cNonce + ":auth:" + h2);
     String authorization = "Digest username=\"" + username + "\", realm=\"" + realm + "\", nonce=\"" + nonce + "\", uri=\"" + uri +
-        "\", cnonce=\"" + cNonce + "\", nc=" + String(nc) + ", qop=auth, response=\"" + response + "\", opaque=\"" + opaque + "\", algorithm=\"MD5-sess\"";
+                           "\", cnonce=\"" + cNonce + "\", nc=" + String(nc) + ", qop=auth, response=\"" + response + "\", opaque=\"" + opaque + "\", algorithm=MD5-sess";
     return authorization;
 }
 
-String getPrinterStatus()
+String getPrinterStatusJson(String &authReqHeader, unsigned int nonce)
 {
     WiFiClient wifiClient;
     HTTPClient httpClient;
-    String requestUri = "http://" + String(PRINTER_SERVER) + "/" + String(PRINTER_URI);
-    httpClient.begin(wifiClient, requestUri);
+    String requestUri = "http://" + String(PRINTER_SERVER) + "/" + String(PRINTER_STATUS_URI);
 
-    const char *keys[] = {"WWW-Authenticate"};
-    httpClient.collectHeaders(keys, 1);
+    if (authReqHeader == nullptr || authReqHeader == "")
+    {
+        httpClient.begin(wifiClient, requestUri);
 
+        const char *keys[] = {"WWW-Authenticate"};
+        httpClient.collectHeaders(keys, 1);
+
+        int httpResponseCode = httpClient.GET();
+        if (httpResponseCode <= 0)
+        {
+            log_w("HTTP GET with no auth failed, error: %s\n", httpClient.errorToString(httpResponseCode).c_str());
+            return "";
+        }
+
+        authReqHeader = httpClient.header("WWW-Authenticate");
+        log_i("Received WWW-Authenticate header: %s", authReqHeader.c_str());
+
+        httpClient.end();
+    }
+
+    String authHeader = getDigestAuth(authReqHeader, String(PRINTER_USER), String(PRINTER_PASS), "GET", "/" + String(PRINTER_STATUS_URI), nonce);
+
+    httpClient.begin(wifiClient, "http://" + String(PRINTER_SERVER) + "/" + String(PRINTER_STATUS_URI));
+    httpClient.addHeader("Authorization", authHeader);
+    // httpClient.addHeader("Accept", "*/*");
+    // httpClient.addHeader("User-Agent", "curl/7.81.0");
+
+    log_i("Sending GET with Authenticate header: %s", authHeader.c_str());
     int httpResponseCode = httpClient.GET();
     if (httpResponseCode <= 0)
     {
-        log_w("HTTP GET bad, error: %s\n", httpClient.errorToString(httpResponseCode).c_str());
-        return "";
-    }
-
-    String authReq = httpClient.header("WWW-Authenticate");
-    log_i("Received WWW-Authenticate header: %s", authReq.c_str());
-
-    String authorization = getDigestAuth(authReq, String(PRINTER_USER), String(PRINTER_PASS), "GET", "/" + String(PRINTER_URI), 1);
-
-    httpClient.end();
-    httpClient.begin(wifiClient, "http://" + String(PRINTER_SERVER) + "/" + String(PRINTER_URI));
-    httpClient.addHeader("Accept", "*/*");
-    httpClient.addHeader("Authorization", authorization);
-    httpClient.addHeader("User-Agent", "curl/7.81.0");
-
-    log_i("Sending GET with Authenticate header: %s", authorization.c_str());
-    httpResponseCode = httpClient.GET();
-    if (httpResponseCode <= 0)
-    {
-        log_w("HTTP GET failed, error: %s\n", httpClient.errorToString(httpResponseCode).c_str());
+        log_w("HTTP GET with auth header failed, error: %s\n", httpClient.errorToString(httpResponseCode).c_str());
         return "";
     }
 
     String payload = httpClient.getString();
-    log_i("HTTP Response code: %d", httpResponseCode);
-    log_i("HTTP Response: %s", payload.c_str());
-
     httpClient.end();
 
     return payload;
@@ -111,19 +107,57 @@ String getPrinterStatus()
 void EnclosureController::_printer_get_status()
 {
     log_i("Getting printer status");
-    getPrinterStatus();
+
+    String statusJson = "";
+    if (_printer_api_authreq != "")
+    {
+        _printer_api_nonce++;
+        log_i("Using existing authreq and nonce: %d", _printer_api_nonce);
+        statusJson = getPrinterStatusJson(_printer_api_authreq, _printer_api_nonce);
+    }
+
+    // if no session or session expired, get a new one
+    if (statusJson == "")
+    {
+        _printer_api_authreq = "";
+        _printer_api_nonce = 0;
+        log_i("Getting new authreq and nonce");
+        statusJson = getPrinterStatusJson(_printer_api_authreq, _printer_api_nonce);
+    }
+
+    if (statusJson == "")
+    {
+        log_e("Failed to get printer status");
+        return;
+    }
+
+    log_i("Printer status JSON: %s", statusJson.c_str());
+
+    DynamicJsonDocument jsonDoc(1024);
+    DeserializationError jsonError = deserializeJson(jsonDoc, statusJson);
+    if (jsonError)
+    {
+        log_e("deserializeJson() failed: %s", jsonError.c_str());
+        return;
+    }
+
+    _printer_extruder_temp = jsonDoc["printer"]["temp_nozzle"];
+    _printer_bed_temp = jsonDoc["printer"]["temp_bed"];
+
+    log_i("Printer extruder temp: %f", _printer_extruder_temp);
+    log_i("Printer bed temp: %f", _printer_bed_temp);
 }
 
 void EnclosureController::_printer_set_extruder_temp()
 {
     _printer_get_status();
-    _printer_set_temperature(_extruder_temp, MIN_HOT_END_TEMP, MAX_HOT_END_TEMP, "Extruder", "M104");
+    _printer_set_temperature(_printer_extruder_temp, MIN_HOT_END_TEMP, MAX_HOT_END_TEMP, "Extruder", "M104");
 }
 
 void EnclosureController::_printer_set_bed_temp()
 {
     _printer_get_status();
-    _printer_set_temperature(_bed_temp, MIN_BED_TEMP, MAX_BED_TEMP, "Bed", "M140");
+    _printer_set_temperature(_printer_bed_temp, MIN_BED_TEMP, MAX_BED_TEMP, "Bed", "M140");
 }
 
 void EnclosureController::_printer_set_temperature(int curTemp, int minTemp, int maxTemp, const char *name, const char *gcode)

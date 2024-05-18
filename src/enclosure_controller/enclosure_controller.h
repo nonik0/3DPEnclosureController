@@ -91,8 +91,11 @@ public:
     void _UpdateDrawFrame(void); // Update and Draw (one frame)
 
     /* 3D Printer */
-    int _extruder_temp = 0;
-    int _bed_temp = 0;
+    float _printer_extruder_temp = 0;
+    float _printer_bed_temp = 0;
+    String _printer_api_authreq = "";
+    uint _printer_api_nonce;
+    String _printer_get_status_json();
     void _printer_get_status();
     void _printer_set_extruder_temp();
     void _printer_set_bed_temp();
