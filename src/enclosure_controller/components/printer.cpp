@@ -59,7 +59,7 @@ String getDigestAuth(String &authReq, const String &username, const String &pass
     //String response = generateMD5(ha1 + ":" + nonce + ":" + "00000001:xyz:auth:" + ha2);
 
     String authorization = "Digest username=\"" + username + "\", realm=\"" + realm + "\", nonce=\"" + nonce + "\", uri=\"" + uri +
-        ", cnonce=\"" + cNonce + "\" + nc=" + String(nc) + ", qop=auth," + "\", response=\"" + response + "\"";
+        "\", cnonce=\"" + cNonce + "\", nc=" + String(nc) + ", qop=auth, response=\"" + response + "\", opaque=\"" + opaque + "\", algorithm=\"MD5-sess\"";
     return authorization;
 }
 
@@ -74,9 +74,9 @@ String getPrinterStatus()
     httpClient.collectHeaders(keys, 1);
 
     int httpResponseCode = httpClient.GET();
-    if (httpResponseCode != 401)
+    if (httpResponseCode <= 0)
     {
-        log_w("HTTP GET not 401 response, error: %s\n", httpClient.errorToString(httpResponseCode).c_str());
+        log_w("HTTP GET bad, error: %s\n", httpClient.errorToString(httpResponseCode).c_str());
         return "";
     }
 
@@ -87,7 +87,9 @@ String getPrinterStatus()
 
     httpClient.end();
     httpClient.begin(wifiClient, "http://" + String(PRINTER_SERVER) + "/" + String(PRINTER_URI));
+    httpClient.addHeader("Accept", "*/*");
     httpClient.addHeader("Authorization", authorization);
+    httpClient.addHeader("User-Agent", "curl/7.81.0");
 
     log_i("Sending GET with Authenticate header: %s", authorization.c_str());
     httpResponseCode = httpClient.GET();
