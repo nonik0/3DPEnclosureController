@@ -12,6 +12,11 @@
 #define MAX_BED_TEMP 120
 #define MIN_BED_TEMP 0
 
+int roundToMultiple(int number, int multiple)
+{
+    return ((number + multiple / 2) / multiple) * multiple;
+}
+
 String exractParam(String &authReq, const String &param, const char delimit)
 {
     int _begin = authReq.indexOf(param);
@@ -87,8 +92,6 @@ String getPrinterStatusJson(String &authReqHeader, unsigned int nonce)
 
     httpClient.begin(wifiClient, "http://" + String(PRINTER_SERVER) + "/" + String(PRINTER_STATUS_URI));
     httpClient.addHeader("Authorization", authHeader);
-    // httpClient.addHeader("Accept", "*/*");
-    // httpClient.addHeader("User-Agent", "curl/7.81.0");
 
     log_i("Sending GET with Authenticate header: %s", authHeader.c_str());
     int httpResponseCode = httpClient.GET();
@@ -131,8 +134,6 @@ void EnclosureController::_printer_get_status()
         return;
     }
 
-    log_i("Printer status JSON: %s", statusJson.c_str());
-
     DynamicJsonDocument jsonDoc(1024);
     DeserializationError jsonError = deserializeJson(jsonDoc, statusJson);
     if (jsonError)
@@ -166,8 +167,8 @@ void EnclosureController::_printer_set_temperature(int curTemp, int minTemp, int
 
     _canvas->setFont(&fonts::Font0);
 
-    int temperature = curTemp; // TODO: get current temp from printer
-    long old_position = _enc_pos;
+    int temperature = curTemp;
+    long old_position = 0;
     char string_buffer[20];
 
     _enc_pos = 0;
@@ -192,7 +193,11 @@ void EnclosureController::_printer_set_temperature(int curTemp, int minTemp, int
 
         if (_check_encoder())
         {
-            temperature = _enc_pos > old_position ? temperature + 5 : temperature - 5;
+            if (temperature % 5 != 0)
+                temperature = _enc_pos > old_position ? ((temperature + 5) / 5) * 5 : (temperature / 5) * 5;
+            else
+                temperature = _enc_pos > old_position ? temperature + 5 : temperature - 5;
+
             if (temperature > maxTemp)
                 temperature = maxTemp;
             if (temperature < minTemp)
