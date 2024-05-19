@@ -25,7 +25,7 @@ struct AppOptionRenderProps_t
     const char *tag;
     const std::uint16_t *icon;
 };
-constexpr int _app_render_props_list_size = 6;
+constexpr int _app_render_props_list_size = 7;
 constexpr AppOptionRenderProps_t _app_render_props_list[] = {
     // {0xB8DBD9, 0x385B59, "DISPLAY TEST", image_data_icon_display},
 
@@ -36,11 +36,14 @@ constexpr AppOptionRenderProps_t _app_render_props_list[] = {
     // {0xF5C396, 0x754316, "ARKANOID", image_data_icon_game},
     // {0xC6D5EF, 0x46556F, "SLEEP&WAKEUP", image_data_icon_sleep},
     // {0xCEDBB8, 0x4E5B38, "POWER OFF", image_data_icon_poweroff},
+    // printer items
     {0xF5C396, 0x754316, "EXTRUDER TEMP", image_data_icon_game},
     {0xF5C396, 0x754316, "BED TEMP", image_data_icon_game},
-    {0xB8DBD9, 0x385B59, "CURRENT PRINT", image_data_icon_display},
+    {0xF5C396, 0x754316, "CURRENT PRINT", image_data_icon_display},
+    // enclosure lighting items
     {0x87C38F, 0x07430F, "LED BRIGHTNESS", image_data_icon_brightness},
     {0x87C38F, 0x07430F, "LED PATTERN", image_data_icon_brightness},
+    // controller items
     {0x87C38F, 0x07430F, "BRIGHTNESS", image_data_icon_brightness},
     {0xF5C396, 0x754316, "ARKANOID", image_data_icon_game},
 };
