@@ -101,10 +101,12 @@ String getPrinterStatusJson(String &authReqHeader, unsigned int nonce)
         return "";
     }
 
-    String payload = httpClient.getString();
+    String statusJson = httpClient.getString();
     httpClient.end();
 
-    return payload;
+    log_i("Received printer status: %s\n", statusJson.c_str());
+
+    return statusJson;
 }
 
 void EnclosureController::_printer_get_status()
