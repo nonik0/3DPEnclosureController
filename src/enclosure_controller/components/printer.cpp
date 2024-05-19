@@ -158,6 +158,7 @@ String EnclosureController::_printer_send_api_request(String httpMethod, String 
         else if (httpMethod == "PUT")
             httpResponseCode = httpClient.PUT("");
         else if (httpMethod == "DELETE")
+            // need to add DELETE() method to HTTPClient
             httpResponseCode = httpClient.DELETE();
         else
         {
