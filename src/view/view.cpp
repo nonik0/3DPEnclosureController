@@ -18,6 +18,16 @@ static EnclosureController *_encCtl = nullptr;
 using namespace SmoothUIToolKit;
 using namespace SmoothUIToolKit::SelectMenu;
 
+// 0xB8DBD9, 0x385B59 light gray blue
+// 0x87C38F, 0x07430F green
+// 0xC9C9EE, 0x49496E light purple
+// 0xF6A4A4, 0x762424 light red
+// 0x6AB8A0, 0x163820 teal
+// 0xC2C1A5, 0x424125 beigey gray
+// 0xF5C396, 0x754316 orange
+// 0xC6D5EF, 0x46556F light blue
+// 0xCEDBB8, 0x4E5B38 light green
+
 struct AppOptionRenderProps_t
 {
     std::uint32_t theme_color;
@@ -27,25 +37,16 @@ struct AppOptionRenderProps_t
 };
 constexpr int _app_render_props_list_size = 7;
 constexpr AppOptionRenderProps_t _app_render_props_list[] = {
-    // {0xB8DBD9, 0x385B59, "DISPLAY TEST", image_data_icon_display},
-
-    // {0xC9C9EE, 0x49496E, "RTC TIME", image_data_icon_rtc},
-    // {0xF6A4A4, 0x762424, "WIFI SCAN", image_data_icon_wifi},
-    // {0x6AB8A0, 0x163820, "ENCODER TEST", image_data_icon_encoder},
-    // {0xC2C1A5, 0x424125, "MENU DEMO", image_data_icon_menu},
-    // {0xF5C396, 0x754316, "ARKANOID", image_data_icon_game},
-    // {0xC6D5EF, 0x46556F, "SLEEP&WAKEUP", image_data_icon_sleep},
-    // {0xCEDBB8, 0x4E5B38, "POWER OFF", image_data_icon_poweroff},
-    // printer items
-    {0xF5C396, 0x754316, "EXTRUDER TEMP", image_data_icon_game},
-    {0xF5C396, 0x754316, "BED TEMP", image_data_icon_game},
-    {0xF5C396, 0x754316, "CURRENT PRINT", image_data_icon_display},
-    // enclosure lighting items
-    {0x87C38F, 0x07430F, "LED BRIGHTNESS", image_data_icon_brightness},
-    {0x87C38F, 0x07430F, "LED PATTERN", image_data_icon_brightness},
-    // controller items
-    {0x87C38F, 0x07430F, "BRIGHTNESS", image_data_icon_brightness},
-    {0xF5C396, 0x754316, "ARKANOID", image_data_icon_game},
+    // printer items - orange
+    {0xF5C396, 0x754316, "NOZZLE TEMP", image_data_icon_nozzle},
+    {0xF5C396, 0x754316, "BED TEMP", image_data_icon_bed},
+    {0xF5C396, 0x754316, "MANAGE PRINT", image_data_icon_manageprint},
+    // enclosure lighting items - red
+    {0x87C38F, 0x07430F, "LED BRIGHTNESS", image_data_icon_enclosurebrightness},
+    {0x87C38F, 0x07430F, "LED PATTERN", image_data_icon_enclosurepattern},
+    // controller items - beige
+    {0xB8DBD9, 0x385B59, "BRIGHTNESS", image_data_icon_displaybrightness},
+    {0xB8DBD9, 0x385B59, "ARKANOID", image_data_icon_arkanoid},
 };
 
 static Transition2D *_batv_panel_transition = nullptr;
@@ -164,7 +165,8 @@ class LauncherMenu : public SmoothOptions
                                             y_offset,
                                             32,
                                             32,
-                                            _app_render_props_list[_matching_index].icon);
+                                            _app_render_props_list[_matching_index].icon,
+                                            0xFFFF);
             }
 
             // Render tags
@@ -220,11 +222,11 @@ class LauncherMenu : public SmoothOptions
         else if (matching_index == 1)
             _encCtl->_printer_set_bed_temp();
         else if (matching_index == 2)
-            _encCtl->_arkanoid_start(); // current print
+            _encCtl->_printer_manage_job();
         else if (matching_index == 3)
             _encCtl->_disp_set_brightness(); // led brightness
         else if (matching_index == 4)
-            _encCtl->_disp_set_brightness(); // led brightness
+            _encCtl->_disp_set_brightness(); // led pattern
         else if (matching_index == 5)
             _encCtl->_disp_set_brightness();
         else if (matching_index == 6)

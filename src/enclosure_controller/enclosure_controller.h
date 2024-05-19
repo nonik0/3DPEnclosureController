@@ -34,8 +34,8 @@ public:
     void _power_off();
 
     /* Display */
-    LGFX_Device* _disp = nullptr;
-    LGFX_Sprite* _canvas = nullptr;
+    LGFX_Device *_disp = nullptr;
+    LGFX_Sprite *_canvas = nullptr;
     inline void _canvas_update() { _canvas->pushSprite(0, 0); }
     void _disp_init();
     void _disp_set_brightness();
@@ -78,7 +78,7 @@ public:
     bool _ssh_inited;
     void _ssh_init();
     void _ssh_deinit();
-    void _ssh_cmd(const char* cmd);
+    void _ssh_cmd(const char *cmd);
 
     /* Arkanoid */
     void _arkanoid_start();
@@ -90,16 +90,32 @@ public:
     void _UnloadGame(void);      // Unload game
     void _UpdateDrawFrame(void); // Update and Draw (one frame)
 
-    /* 3D Printer */
-    float _printer_extruder_temp = 0;
-    float _printer_bed_temp = 0;
+    /* 3D Printer - Prusalink */
+    struct PrinterStatus
+    {
+        String state; // [ IDLE, BUSY, PRINTING, PAUSED, FINISHED, STOPPED, ERROR, ATTENTION, READY ]
+        float temp_nozzle;
+        float temp_bed;
+        float speed;
+        float target_nozzle;
+        float target_bed;
+    };
+    struct PrinterJob
+    {
+        int id;
+        int progress;
+        int time_remaining;
+    };
+    PrinterStatus _printer_status = {"UNKNOWN", 0, 0, 0, 0, 0};
+    PrinterJob _printer_job = {0, 0, 0};
     String _printer_api_authreq = "";
     uint _printer_api_nonce;
-    String _printer_get_status_json();
-    void _printer_get_status();
+    String _printer_send_api_request(String httpMethod, String requestUri);
+    void _printer_update_status();
     void _printer_set_extruder_temp();
     void _printer_set_bed_temp();
-    void _printer_set_temperature(int minTemp, int maxTemp, int defaultTemp, const char* name, const char* gcode);
+    void _printer_set_temperature(int minTemp, int maxTemp, int defaultTemp, const char *name, const char *gcode);
+    void _printer_manage_job();
 
 public:
     EnclosureController() {}
