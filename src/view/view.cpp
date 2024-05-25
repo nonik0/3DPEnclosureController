@@ -224,6 +224,7 @@ class LauncherMenu : public SmoothOptions
     {
         _open_app();
         _wait_button_released = true;
+        _last_input_millis = millis(); // prevent screen timeout coming out of app
 
         // Reset anim
         setPositionDuration(600);
