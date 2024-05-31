@@ -248,9 +248,9 @@ class LauncherMenu : public SmoothOptions
         else if (matching_index == 2)
             EncCtl->_printer_manage_job();
         else if (matching_index == 3)
-            EncCtl->_disp_set_brightness(); // led brightness
+            EncCtl->_wled_set_brightness();
         else if (matching_index == 4)
-            EncCtl->_disp_set_brightness(); // led pattern
+            EncCtl->_wled_set_preset();
         else if (matching_index == 5)
             EncCtl->_disp_set_brightness();
         else if (matching_index == 6)

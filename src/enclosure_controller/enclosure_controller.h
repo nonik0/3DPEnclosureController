@@ -90,6 +90,20 @@ public:
     void _UnloadGame(void);      // Unload game
     void _UpdateDrawFrame(void); // Update and Draw (one frame)
 
+    /* WLED (enclosure lighting) */
+    bool _wled_on = false;
+    int _wled_brightness = 0;
+    // uint32_t _wled_color = 0;
+    // uint8_t _wled_effect = 0;
+    int _wled_preset = -1;
+    HTTPClient _wled_client;
+    bool _wled_update_state(String json = "");
+    bool _wled_send_command(String json);
+    void _wled_set_brightness();
+    void _wled_set_preset();
+    // void _wled_set_color();
+    // void _wled_set_effect();
+
     /* 3D Printer - Prusalink */
     struct PrinterStatus
     {
