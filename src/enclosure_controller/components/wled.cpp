@@ -67,11 +67,20 @@ bool EnclosureController::_wled_update_presets()
             return false;
         }
 
+        for (int i = 0; i < 16; i++)
+        {
+            _wled_preset_names[i] = "";
+        }
+
         for (JsonPair preset : jsonDoc.as<JsonObject>())
         {
             int presetId = atoi(preset.key().c_str());
-            _wled_preset_names[presetId] = preset.value()["n"].as<String>();
-            log_i("Preset %d: %s", presetId, _wled_preset_names[presetId].c_str());
+            String presetName = preset.value()["n"].as<String>();
+            if (presetName != "null" && presetId < 16)
+            {
+                _wled_preset_names[presetId] = presetName;
+                log_i("Preset %d: %s", presetId, _wled_preset_names[presetId].c_str());
+            }
         }
     }
     else
@@ -206,33 +215,52 @@ void EnclosureController::_wled_set_preset()
         snprintf(string_buffer, 20, "Set LED Preset");
         _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 5);
 
-        _canvas->setTextSize(4);
+        _canvas->setTextSize(3);
         _canvas->setTextColor((uint32_t)0x07430F);
         if (curPresetIndex == -1)
+        {
             snprintf(string_buffer, 20, "None");
+            _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 55);
+        }
         else
-            snprintf(string_buffer, 20, "%s", _wled_preset_names[curPresetIndex].c_str());
-        _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 55);
+        {
+            String name = _wled_preset_names[curPresetIndex];
+            int firstSpaceIdx = name.indexOf(' ');
+            
+            if (firstSpaceIdx > 0) // 2 lines for name, split on first space
+            {
+                _canvas->drawCenterString(name.substring(0, firstSpaceIdx), _canvas->width() / 2, 55 - _canvas->fontHeight() / 2 - 1);
+                _canvas->drawCenterString(name.substring(firstSpaceIdx), _canvas->width() / 2, 55 + _canvas->fontHeight() / 2 + 1);
+            }
+            else // one line
+            {
+                snprintf(string_buffer, 20, "%s", _wled_preset_names[curPresetIndex].c_str());
+                _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 55);
+            }
+        }
 
         _canvas_update();
 
         if (_check_encoder())
         {
-            do {
+            do
+            {
                 curPresetIndex = _enc_pos > old_position ? curPresetIndex + 1 : curPresetIndex - 1;
                 if (curPresetIndex < minPresetIndex)
                     curPresetIndex = maxPresetIndex;
                 if (curPresetIndex > maxPresetIndex)
                     curPresetIndex = minPresetIndex;
-            } while(_wled_preset_names[curPresetIndex] == nullptr);
+            } while (_wled_preset_names[curPresetIndex] == "");
 
             old_position = _enc_pos;
         }
 
         if (_check_btn() == SHORT_PRESS)
         {
+            log_i("setting preset to %d", curPresetIndex);
+
             _wled_preset = curPresetIndex;
-            String json =  "{\"on\":true,\"ps\":" + String(_wled_preset) + "}";
+            String json = "{\"on\":true,\"ps\":" + String(_wled_preset) + "}";
             _wled_send_command(json);
         }
         else if (_check_btn() == LONG_PRESS)

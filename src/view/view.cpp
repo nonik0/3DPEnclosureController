@@ -43,7 +43,7 @@ constexpr AppOptionRenderProps_t _app_render_props_list[] = {
     {0xF5C396, 0x754316, "MANAGE PRINT", image_data_icon_manageprint},
     // enclosure lighting items - red
     {0x87C38F, 0x07430F, "LED BRIGHTNESS", image_data_icon_enclosurebrightness},
-    {0x87C38F, 0x07430F, "LED PATTERN", image_data_icon_enclosurepattern},
+    {0x87C38F, 0x07430F, "LED PRESETS", image_data_icon_enclosurepattern},
     // controller items - beige
     {0xB8DBD9, 0x385B59, "BRIGHTNESS", image_data_icon_displaybrightness},
     {0xB8DBD9, 0x385B59, "ARKANOID", image_data_icon_arkanoid},
