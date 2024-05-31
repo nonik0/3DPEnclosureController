@@ -96,8 +96,10 @@ public:
     // uint32_t _wled_color = 0;
     // uint8_t _wled_effect = 0;
     int _wled_preset = -1;
+    String _wled_preset_names[15];
     HTTPClient _wled_client;
     bool _wled_update_state(String json = "");
+    bool _wled_update_presets();
     bool _wled_send_command(String json);
     void _wled_set_brightness();
     void _wled_set_preset();
