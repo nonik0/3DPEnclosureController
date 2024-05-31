@@ -3,8 +3,6 @@
 #include "../enclosure_controller.h"
 #include "../secrets.h"
 
-HTTPClient _wled_client;
-
 bool EnclosureController::_wled_update_state(String jsonResponse)
 {
     if (jsonResponse == "")
@@ -25,8 +23,6 @@ bool EnclosureController::_wled_update_state(String jsonResponse)
             _wled_client.end();
             return false;
         }
-
-        // http://[wled]?edit=%2Fpresets.json
     }
 
     if (jsonResponse == "")
@@ -75,6 +71,7 @@ bool EnclosureController::_wled_update_presets()
         {
             int presetId = atoi(preset.key().c_str());
             _wled_preset_names[presetId] = preset.value()["n"].as<String>();
+            log_i("Preset %d: %s", presetId, _wled_preset_names[presetId].c_str());
         }
     }
     else
@@ -113,9 +110,8 @@ bool EnclosureController::_wled_send_command(String json)
 
 void EnclosureController::_wled_set_brightness()
 {
-    String name = "Enclosure";
-    int minBrightnessPct = 0;
-    int maxBrightnessPct = 100;
+    const int minBrightnessPct = 0;
+    const int maxBrightnessPct = 100;
 
     _wled_update_state();
 
@@ -135,13 +131,14 @@ void EnclosureController::_wled_set_brightness()
         _canvas->fillRect(0, 0, 240, 25, (uint32_t)0x07430F);
         _canvas->setTextSize(2);
         _canvas->setTextColor((uint32_t)0x87C38F);
-        snprintf(string_buffer, 20, "Set %s Brightness", name);
+        snprintf(string_buffer, 20, "Set LED Brightness");
         _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 5);
 
         _canvas->setTextSize(5);
         _canvas->setTextColor((uint32_t)0x07430F);
         snprintf(string_buffer, 20, "%d%", brightnessPct);
         _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 55);
+
         if (!_wled_on)
         {
             _canvas->setTextSize(3);
@@ -185,9 +182,8 @@ void EnclosureController::_wled_set_brightness()
 
 void EnclosureController::_wled_set_preset()
 {
-    String name = "Enclosure";
-    int minPresetIndex = -1;
-    int maxPresetIndex = 15;
+    const int minPresetIndex = 0;
+    const int maxPresetIndex = 15;
 
     _wled_update_presets();
 
@@ -207,7 +203,7 @@ void EnclosureController::_wled_set_preset()
         _canvas->fillRect(0, 0, 240, 25, (uint32_t)0x07430F);
         _canvas->setTextSize(2);
         _canvas->setTextColor((uint32_t)0x87C38F);
-        snprintf(string_buffer, 20, "Set LED Preset", name);
+        snprintf(string_buffer, 20, "Set LED Preset");
         _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 5);
 
         _canvas->setTextSize(4);
@@ -217,39 +213,27 @@ void EnclosureController::_wled_set_preset()
         else
             snprintf(string_buffer, 20, "%s", _wled_preset_names[curPresetIndex].c_str());
         _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 55);
-        if (!_wled_on)
-        {
-            _canvas->setTextSize(3); 
-            _canvas->drawCenterString("OFF", _canvas->width() / 2, 110);
-        }
 
         _canvas_update();
 
         if (_check_encoder())
         {
-            brightnessPct = _enc_pos > old_position ? brightnessPct + 1 : brightnessPct - 1;
-
-            if (brightnessPct > maxBrightnessPct)
-                brightnessPct = maxBrightnessPct;
-            if (brightnessPct < minBrightnessPct)
-                brightnessPct = minBrightnessPct;
-
-            // TODO: rate limiter??
-            _wled_brightness = brightnessPct * 2.55;
-            String json = "{\"bri\":" + String(_wled_brightness) + "}";
-            if (_wled_on)
-                _wled_send_command(json);
+            do {
+                curPresetIndex = _enc_pos > old_position ? curPresetIndex + 1 : curPresetIndex - 1;
+                if (curPresetIndex < minPresetIndex)
+                    curPresetIndex = maxPresetIndex;
+                if (curPresetIndex > maxPresetIndex)
+                    curPresetIndex = minPresetIndex;
+            } while(_wled_preset_names[curPresetIndex] == nullptr);
 
             old_position = _enc_pos;
         }
 
         if (_check_btn() == SHORT_PRESS)
         {
-            String json = _wled_on
-                              ? "{\"on\":false}"
-                              : "{\"on\":true,\"bri\":" + String(_wled_brightness) + "}";
-            if (_wled_send_command(json))
-                _wled_on = !_wled_on;
+            _wled_preset = curPresetIndex;
+            String json =  "{\"on\":true,\"ps\":" + String(_wled_preset) + "}";
+            _wled_send_command(json);
         }
         else if (_check_btn() == LONG_PRESS)
         {
