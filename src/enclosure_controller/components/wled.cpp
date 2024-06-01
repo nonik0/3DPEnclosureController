@@ -129,6 +129,7 @@ void EnclosureController::_wled_set_brightness()
     int brightnessPct = _wled_brightness / 2.55;
     long old_position = 0;
     char string_buffer[20];
+    TaskHandle_t updateTaskHandle = NULL;
 
     _enc_pos = 0;
     _enc.setPosition(_enc_pos);
@@ -158,20 +159,31 @@ void EnclosureController::_wled_set_brightness()
 
         if (_check_encoder())
         {
-            brightnessPct = _enc_pos > old_position ? brightnessPct + 1 : brightnessPct - 1;
+            brightnessPct = _enc_pos > old_position
+                                ? min(brightnessPct + 1, maxBrightnessPct)
+                                : max(brightnessPct - 1, minBrightnessPct);
 
-            if (brightnessPct > maxBrightnessPct)
-                brightnessPct = maxBrightnessPct;
-            if (brightnessPct < minBrightnessPct)
-                brightnessPct = minBrightnessPct;
-
-            // TODO: rate limiter??
             _wled_brightness = brightnessPct * 2.55;
-            String json = "{\"bri\":" + String(_wled_brightness) + "}";
-            if (_wled_on)
-                _wled_send_command(json);
-
             old_position = _enc_pos;
+
+            if (updateTaskHandle == NULL)
+            {
+                xTaskCreate([](void *p)
+                            {
+                                EnclosureController *self = (EnclosureController *)p;
+                                int lastUpdatedBrightness = self->_wled_brightness;
+
+                                while (true) {
+                                    if (self->_wled_on && self->_wled_brightness != lastUpdatedBrightness) {
+                                        String json = "{\"bri\":" + String(self->_wled_brightness) + "}";
+                                        self->_wled_send_command(json);
+                                        lastUpdatedBrightness = self->_wled_brightness;
+                                        log_i("Updated brightness to %d", lastUpdatedBrightness);
+                                    }
+
+                                    vTaskDelay(10);
+                                } }, "WLEDBrightnessUpdateTask", 4096, this, 1, &updateTaskHandle);
+            }
         }
 
         if (_check_btn() == SHORT_PRESS)
@@ -186,6 +198,11 @@ void EnclosureController::_wled_set_brightness()
         {
             break;
         }
+    }
+
+    if (updateTaskHandle != NULL)
+    {
+        vTaskDelete(updateTaskHandle);
     }
 }
 
@@ -226,7 +243,7 @@ void EnclosureController::_wled_set_preset()
         {
             String name = _wled_preset_names[curPresetIndex];
             int firstSpaceIdx = name.indexOf(' ');
-            
+
             if (firstSpaceIdx > 0) // 2 lines for name, split on first space
             {
                 _canvas->drawCenterString(name.substring(0, firstSpaceIdx), _canvas->width() / 2, 55 - _canvas->fontHeight() / 2 - 1);
