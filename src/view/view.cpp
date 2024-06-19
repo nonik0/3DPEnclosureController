@@ -49,9 +49,13 @@ constexpr AppOptionRenderProps_t _app_render_props_list[] = {
     {0xB8DBD9, 0x385B59, "ARKANOID", image_data_icon_arkanoid},
 };
 
-static Transition2D *_batv_panel_transition = nullptr;
-static std::uint32_t _batv_time_count = 0;
-static char _batv[10] = {0};
+// static Transition2D *_batv_panel_transition = nullptr;
+// static std::uint32_t _batv_time_count = 0;
+// static char _batv[10] = {0};
+static std::uint32_t _env_time_count = 0;
+static char _temp[10] = {0};
+static char _humd[10] = {0};
+static char _pres[10] = {0};
 static int _last_enc_position = 0;
 static bool _is_just_boot_in = true;
 
@@ -147,14 +151,14 @@ class LauncherMenu : public SmoothOptions
         // Clear
         EncCtl->_canvas->fillScreen(TFT_BLACK);
 
-        // Render batv panel
+        // Render env panel
         EncCtl->_canvas->setTextDatum(top_left);
         EncCtl->_canvas->setTextColor(0x7F5845);
         EncCtl->_canvas->setFont(&fonts::efontCN_16);
         EncCtl->_canvas->setTextColor(TFT_SILVER);
-        EncCtl->_canvas->drawString("Bat:", _batv_panel_transition->getValue().x + 6, _batv_panel_transition->getValue().y + 13);
-        EncCtl->_canvas->setFont(&fonts::efontCN_24);
-        EncCtl->_canvas->drawString(_batv, _batv_panel_transition->getValue().x + 4, _batv_panel_transition->getValue().y + 29);
+        EncCtl->_canvas->drawString(_temp, 6, 22);
+        EncCtl->_canvas->drawString(_humd, 6, 54);
+        EncCtl->_canvas->drawString(_pres, 6, 86);
 
         // Render options
         int y_offset = 6;
@@ -293,25 +297,26 @@ void view_create(EnclosureController *encCtl)
     _launcher_menu->setPositionTransitionPath(EasingPath::easeOutBack);
     _launcher_menu->setShapeDuration(400);
 
-    // Create bat va panel transition
-    _batv_panel_transition = new Transition2D(-83, 135);
-    _batv_panel_transition->moveTo(0, 81);
-    _batv_panel_transition->setDelay(300);
-    _batv_panel_transition->setDuration(800);
-    float bat_v = (float)analogReadMilliVolts(10) * 2 / 1000;
-    snprintf(_batv, 10, "%.1fV", bat_v);
+    // get env data
+    EncCtl->_env_update();
+    snprintf(_temp, 10, "%.1fF", EncCtl->_temp);
+    snprintf(_humd, 10, "%.1f%%", EncCtl->_hum);
+    snprintf(_pres, 10, "%.1fhPa", EncCtl->_press);
 }
 
 void view_update()
 {
     _launcher_menu->update(millis());
-    _batv_panel_transition->update(millis());
 
-    // Read bat voltage
-    if (millis() - _batv_time_count > 3000)
+    // Read env sensor
+    if (millis() - _env_time_count > 3000)
     {
-        float bat_v = (float)analogReadMilliVolts(10) * 2 / 1000;
-        snprintf(_batv, 10, "%.1fV", bat_v);
-        _batv_time_count = millis();
+        EncCtl->_env_update();
+
+        snprintf(_temp, 10, "%.1fF", EncCtl->_temp);
+        snprintf(_humd, 10, "%.1f%%", EncCtl->_hum);
+        snprintf(_pres, 10, "%.1fhPa", EncCtl->_press);
+
+        _env_time_count = millis();
     }
 }

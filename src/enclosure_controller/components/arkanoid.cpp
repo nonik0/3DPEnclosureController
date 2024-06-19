@@ -20,6 +20,9 @@
 #define LINES_OF_BRICKS 5
 #define BRICKS_PER_LINE 20
 
+#define BG_COLOR 0xB8DBD9
+#define FG_COLOR 0x385B59
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -425,7 +428,7 @@ void EnclosureController::_DrawGame(void)
     // BeginDrawing();
 
     // ClearBackground(RAYWHITE);
-    _canvas->fillScreen((uint32_t)0xF5C396);
+    _canvas->fillScreen((uint32_t)BG_COLOR);
 
     if (!gameOver)
     {
@@ -436,17 +439,17 @@ void EnclosureController::_DrawGame(void)
                           player.position.y - player.size.y / 2,
                           player.size.x,
                           player.size.y,
-                          (uint32_t)0x754316);
+                          (uint32_t)FG_COLOR);
 
         // Draw player lives
         // for (int i = 0; i < player.life; i++) DrawRectangle(20 + 40*i, screenHeight - 30, 35, 10, LIGHTGRAY);
         for (int i = 0; i < player.life; i++)
             _canvas->fillSmoothCircle(
-                10 + (ball.radius * 3) * i, screenHeight - ball.radius * 2, ball.radius, (uint32_t)0x754316);
+                10 + (ball.radius * 3) * i, screenHeight - ball.radius * 2, ball.radius, (uint32_t)FG_COLOR);
 
         // Draw ball
         // DrawCircleV(ball.position, ball.radius, MAROON);
-        _canvas->fillSmoothCircle(ball.position.x, ball.position.y, ball.radius, (uint32_t)0x754316);
+        _canvas->fillSmoothCircle(ball.position.x, ball.position.y, ball.radius, (uint32_t)FG_COLOR);
 
         // Draw bricks
         for (int i = 0; i < LINES_OF_BRICKS; i++)
@@ -464,13 +467,13 @@ void EnclosureController::_DrawGame(void)
                                           brick[i][j].position.y - brickSize.y / 2,
                                           brickSize.x,
                                           brickSize.y,
-                                          (uint32_t)0x754316);
+                                          (uint32_t)FG_COLOR);
                     else
                         _canvas->fillRect(brick[i][j].position.x - brickSize.x / 2,
                                           brick[i][j].position.y - brickSize.y / 2,
                                           brickSize.x,
                                           brickSize.y,
-                                          (uint32_t)0x754316);
+                                          (uint32_t)FG_COLOR);
                 }
             }
         }

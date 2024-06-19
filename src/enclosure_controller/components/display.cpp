@@ -36,16 +36,16 @@ void EnclosureController::_disp_set_brightness()
 
     while (1)
     {
-        _canvas->fillScreen((uint32_t)0x87C38F);
+        _canvas->fillScreen((uint32_t)0xB8DBD9);
 
-        _canvas->fillRect(0, 0, 240, 25, (uint32_t)0x07430F);
+        _canvas->fillRect(0, 0, 240, 25, (uint32_t)0x385B59);
         _canvas->setTextSize(2);
-        _canvas->setTextColor((uint32_t)0x87C38F);
+        _canvas->setTextColor((uint32_t)0xB8DBD9);
         snprintf(string_buffer, 20, "Set Brightness");
         _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 5);
 
         _canvas->setTextSize(5);
-        _canvas->setTextColor((uint32_t)0x07430F);
+        _canvas->setTextColor((uint32_t)0x385B59);
         snprintf(string_buffer, 20, "%d", brightness);
         _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 55);
 

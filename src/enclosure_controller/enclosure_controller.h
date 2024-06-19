@@ -16,6 +16,8 @@
 #include <libssh/libssh.h>
 #include <libssh_esp32.h>
 
+#include <M5UnitENV.h>
+
 #define BUZZ_PIN 3
 #define POWER_HOLD_PIN 46
 
@@ -68,14 +70,24 @@ public:
     void _rtc_ntp_sync();
     void _rtc_check();
 
+    /* Env IV Sensor */
+    SHT4X _sht4Sensor;
+    BMP280 _bmpSensor;
+    float _temp = 0.0;
+    float _hum = 0.0;
+    float _press = 0.0;
+    bool _env_inited = false;
+    void _env_init();
+    void _env_update();
+
     /* Wifi */
-    bool _wifi_inited;
+    bool _wifi_inited = false;
     void _wifi_init();
     bool _wifi_check();
 
     /* SSH */
     ssh_session _ssh_session;
-    bool _ssh_inited;
+    bool _ssh_inited = false;
     void _ssh_init();
     void _ssh_deinit();
     void _ssh_cmd(const char *cmd);

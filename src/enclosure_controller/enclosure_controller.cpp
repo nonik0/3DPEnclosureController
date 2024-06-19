@@ -6,6 +6,8 @@ void EnclosureController::init()
 
     _rtc_init();
 
+    _env_init();
+
     _btn_init();
 
     _enc_init();
