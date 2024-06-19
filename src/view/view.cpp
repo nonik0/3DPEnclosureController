@@ -156,9 +156,11 @@ class LauncherMenu : public SmoothOptions
         EncCtl->_canvas->setTextColor(0x7F5845);
         EncCtl->_canvas->setFont(&fonts::efontCN_16);
         EncCtl->_canvas->setTextColor(TFT_SILVER);
-        EncCtl->_canvas->drawString(_temp, 6, 22);
-        EncCtl->_canvas->drawString(_humd, 6, 54);
-        EncCtl->_canvas->drawString(_pres, 6, 86);
+        EncCtl->_canvas->drawString(_temp, 6, 80);
+        EncCtl->_canvas->drawString(_humd, 6, 96);
+        EncCtl->_canvas->drawString(_pres, 6, 112);
+
+        EncCtl->_canvas->setFont(&fonts::efontCN_24);
 
         // Render options
         int y_offset = 6;
@@ -313,7 +315,7 @@ void view_update()
     {
         EncCtl->_env_update();
 
-        snprintf(_temp, 10, "%.1fF", EncCtl->_temp);
+        snprintf(_temp, 10, "%.1f°F", EncCtl->_temp);
         snprintf(_humd, 10, "%.1f%%", EncCtl->_hum);
         snprintf(_pres, 10, "%.1fhPa", EncCtl->_press);
 
