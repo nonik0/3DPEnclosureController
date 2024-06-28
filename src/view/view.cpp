@@ -65,7 +65,6 @@ class LauncherMenu : public SmoothOptions
     bool _is_pressing = false;
     int _matching_index = 0;
     unsigned long _last_input_millis = 0;
-    int _saved_brightness = -1;
 
     void onReadInput() override
     {
@@ -73,8 +72,7 @@ class LauncherMenu : public SmoothOptions
             return;
 
         // Update navigation
-        EncCtl->_check_encoder(true);
-        if (EncCtl->_enc.getPosition() != _last_enc_position)
+        if (EncCtl->_check_encoder(true) && EncCtl->_enc.getPosition() != _last_enc_position)
         {
             if (EncCtl->_enc.getPosition() < _last_enc_position)
             {
@@ -102,6 +100,9 @@ class LauncherMenu : public SmoothOptions
         // If select
         else if (!EncCtl->_enc_btn.read())
         {
+            bool blanking = EncCtl->_disp_blank_if_timeout();
+            EncCtl->_disp_timeout_reset();
+
             if (!_wait_button_released)
             {
                 EncCtl->_tone(2500, 50);
@@ -109,7 +110,7 @@ class LauncherMenu : public SmoothOptions
                 _wait_button_released = true;
                 _last_input_millis = millis();
 
-                if (_saved_brightness < 0)
+                if (!blanking)
                 {
                     _is_pressing = true;
 
@@ -133,21 +134,6 @@ class LauncherMenu : public SmoothOptions
 
     void onRender() override
     {
-        if (millis() - _last_input_millis > 3 * 60 * 1000) // 3 minute screen timeout
-        {
-            if (_saved_brightness < 0)
-            {
-                _saved_brightness = EncCtl->_disp->getBrightness();
-                EncCtl->_disp->setBrightness(0);
-            }
-            return;
-        }
-        else if (_saved_brightness >= 0)
-        {
-            EncCtl->_disp->setBrightness(_saved_brightness);
-            _saved_brightness = -1;
-        }
-
         // Clear
         EncCtl->_canvas->fillScreen(TFT_BLACK);
 
