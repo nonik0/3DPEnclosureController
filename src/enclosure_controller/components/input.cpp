@@ -39,8 +39,17 @@ void EnclosureController::_btn_init()
 
 EnclosureController::PressType EnclosureController::_check_btn()
 {
+    bool blanking = _disp_blank_if_timeout();
+
     if (!_enc_btn.read())
     {
+        _disp_timeout_reset();
+        if (blanking)
+        {
+            log_i("Ignoring first input that turns off display blanking");
+            return PressType::NONE;
+        }
+
         _tone(2500, 50);
 
         uint8_t time_count = 0;
@@ -49,12 +58,14 @@ EnclosureController::PressType EnclosureController::_check_btn()
             time_count++;
             if (time_count > 20)
             {
+                log_i("Long press");
                 return PressType::LONG_PRESS;
             }
 
             delay(10);
         }
 
+        log_i("Short press");
         return PressType::SHORT_PRESS;
     }
 
@@ -81,8 +92,17 @@ void EnclosureController::_enc_init()
 
 bool EnclosureController::_check_encoder(bool playBuzz)
 {
+    bool blanking = _disp_blank_if_timeout();
+
     if (_enc_pos != _enc.getPosition())
     {
+        _disp_timeout_reset();
+        if (blanking)
+        {
+            log_i("Ignoring first input that turns off display blanking");
+            return false; 
+        }
+
         /* Bi */
         if (playBuzz)
         {
@@ -93,6 +113,7 @@ bool EnclosureController::_check_encoder(bool playBuzz)
         }
 
         _enc_pos = _enc.getPosition();
+        log_i("Encoder position: %d", _enc_pos);
 
         return true;
     }

@@ -38,9 +38,13 @@ public:
     /* Display */
     LGFX_Device *_disp = nullptr;
     LGFX_Sprite *_canvas = nullptr;
+    unsigned long _disp_timeout = 0;
+    int _disp_saved_brightness = 0;
     inline void _canvas_update() { _canvas->pushSprite(0, 0); }
     void _disp_init();
     void _disp_set_brightness();
+    void _disp_timeout_reset();
+    bool _disp_blank_if_timeout();
 
     /* Button */
     enum PressType
@@ -103,20 +107,23 @@ public:
     void _UpdateDrawFrame(void); // Update and Draw (one frame)
 
     /* WLED (enclosure lighting) */
+    struct WLEDPreset
+    {
+        int id;
+        String name;
+    };
     volatile bool _wled_on = false;
     volatile int _wled_brightness = 0;
     // uint32_t _wled_color = 0;
     // uint8_t _wled_effect = 0;
     int _wled_preset = -1;
-    String _wled_preset_names[16];
+    WLEDPreset _wled_presets[16];
     HTTPClient _wled_client;
     bool _wled_update_state(String json = "");
     bool _wled_update_presets();
     bool _wled_send_command(String json);
     void _wled_set_brightness();
     void _wled_set_preset();
-    // void _wled_set_color();
-    // void _wled_set_effect();
 
     /* 3D Printer - Prusalink */
     struct PrinterStatus

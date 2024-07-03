@@ -56,7 +56,7 @@ bool EnclosureController::_wled_update_presets()
     {
         String jsonResponse = _wled_client.getString();
         log_i("HTTP Response code: %d", httpResponseCode);
-        log_i("Response: %s", jsonResponse.c_str());
+        // log_i("Response: %s", jsonResponse.c_str());
         _wled_client.end();
 
         JsonDocument jsonDoc;
@@ -69,19 +69,36 @@ bool EnclosureController::_wled_update_presets()
 
         for (int i = 0; i < 16; i++)
         {
-            _wled_preset_names[i] = "";
+            _wled_presets[i] = {-1, ""};
         }
 
+        int presetIndex = 0;
         for (JsonPair preset : jsonDoc.as<JsonObject>())
         {
             int presetId = atoi(preset.key().c_str());
             String presetName = preset.value()["n"].as<String>();
             if (presetName != "null" && presetId < 16)
             {
-                _wled_preset_names[presetId] = presetName;
-                log_i("Preset %d: %s", presetId, _wled_preset_names[presetId].c_str());
+                _wled_presets[presetIndex] = {presetId, presetName};
+                log_i("Preset %d: %s", presetId, presetName.c_str());
             }
+
+            presetIndex++;
         }
+
+        // sort presets by name, with empty names at the end
+        std::sort(std::begin(_wled_presets), std::end(_wled_presets), [](const WLEDPreset &a, const WLEDPreset &b)
+                  {
+            if (a.name == "" && b.name == "")
+                return false;
+            if (a.name == "")
+                return false;
+            if (b.name == "")
+                return true;
+            return a.name < b.name; });
+
+        for (int i = 0; i < 16; i++)
+            log_i("Preset: idx[%d] id[%d] name[%s]", i, _wled_presets[i].id, _wled_presets[i].name.c_str());
     }
     else
     {
@@ -216,7 +233,19 @@ void EnclosureController::_wled_set_preset()
 
     _canvas->setFont(&fonts::Font0);
 
-    int curPresetIndex = _wled_preset;
+    // find current preset index if set
+    int curPresetIndex = -1;
+    if (_wled_preset > -1)
+    {
+        for (int i = 0; i < 16; i++)
+        {
+            if (_wled_presets[i].id == _wled_preset)
+            {
+                curPresetIndex = i;
+                break;
+            }
+        }
+    }
     long old_position = 0;
     char string_buffer[20];
 
@@ -242,7 +271,7 @@ void EnclosureController::_wled_set_preset()
         }
         else
         {
-            String name = _wled_preset_names[curPresetIndex];
+            String name = _wled_presets[curPresetIndex].name;
             int firstSpaceIdx = name.indexOf(' ');
 
             if (firstSpaceIdx > 0) // 2 lines for name, split on first space
@@ -252,7 +281,7 @@ void EnclosureController::_wled_set_preset()
             }
             else // one line
             {
-                snprintf(string_buffer, 20, "%s", _wled_preset_names[curPresetIndex].c_str());
+                snprintf(string_buffer, 20, "%s", _wled_presets[curPresetIndex].name.c_str());
                 _canvas->drawCenterString(string_buffer, _canvas->width() / 2, 55);
             }
         }
@@ -268,16 +297,16 @@ void EnclosureController::_wled_set_preset()
                     curPresetIndex = maxPresetIndex;
                 if (curPresetIndex > maxPresetIndex)
                     curPresetIndex = minPresetIndex;
-            } while (_wled_preset_names[curPresetIndex] == "");
+            } while (_wled_presets[curPresetIndex].name == "");
 
             old_position = _enc_pos;
         }
 
         if (_check_btn() == SHORT_PRESS)
         {
-            log_i("setting preset to %d", curPresetIndex);
+            _wled_preset = _wled_presets[curPresetIndex].id;
 
-            _wled_preset = curPresetIndex;
+            log_i("setting preset to %d", _wled_preset);
             String json = "{\"on\":true,\"ps\":" + String(_wled_preset) + "}";
             _wled_send_command(json);
             break;
