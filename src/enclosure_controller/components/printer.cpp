@@ -287,6 +287,7 @@ void EnclosureController::_printer_set_temperature(int curTemp, int minTemp, int
             char cmd[40];
             sprintf(cmd, "echo \"%s S%d\" > /dev/ttyAMA0", gcode, temperature);
             _ssh_cmd(cmd);
+            break;
         }
         else if (_check_btn() == LONG_PRESS)
         {
