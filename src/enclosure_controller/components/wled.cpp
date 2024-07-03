@@ -193,6 +193,7 @@ void EnclosureController::_wled_set_brightness()
                               : "{\"on\":true,\"bri\":" + String(_wled_brightness) + "}";
             if (_wled_send_command(json))
                 _wled_on = !_wled_on;
+            break;
         }
         else if (_check_btn() == LONG_PRESS)
         {
@@ -279,6 +280,7 @@ void EnclosureController::_wled_set_preset()
             _wled_preset = curPresetIndex;
             String json = "{\"on\":true,\"ps\":" + String(_wled_preset) + "}";
             _wled_send_command(json);
+            break;
         }
         else if (_check_btn() == LONG_PRESS)
         {
