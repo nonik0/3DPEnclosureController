@@ -92,3 +92,32 @@ void EnclosureController::_disp_set_brightness()
 
     printf("quit set brightness\n");
 }
+
+// called by input functions to reset the screen timeout
+void EnclosureController::_disp_timeout_reset()
+{
+    _disp_timeout = millis() + 3 * 60 * 1000; // 3 minute screen timeout
+}
+
+bool EnclosureController::_disp_blank_if_timeout()
+{
+    if (millis() > _disp_timeout)
+    {
+        if (_disp_saved_brightness == 0)
+        {
+            _disp_saved_brightness = _disp->getBrightness();
+            _disp->setBrightness(0);
+            log_i("Screen timeout, blanking display and saving brightness %d", _disp_saved_brightness);
+        }
+
+        return true;
+    }
+    else if (_disp_saved_brightness > 0)
+    {
+        log_i("Restoring brightness to %d", _disp_saved_brightness);
+        _disp->setBrightness(_disp_saved_brightness);
+        _disp_saved_brightness = 0;
+    }
+
+    return false;
+}
