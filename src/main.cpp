@@ -23,6 +23,7 @@ void setup()
 
 void loop()
 {
+    ArduinoOTA.handle();
     delay(100);
 }
 
