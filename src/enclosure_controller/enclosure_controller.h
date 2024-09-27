@@ -1,6 +1,8 @@
 #pragma once
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 #include <Button.h>
+#include <ESPmDNS.h>
 #include <ESP32Encoder.h>
 #include <I2C_BM8563.h>
 #include <LovyanGFX.h>
